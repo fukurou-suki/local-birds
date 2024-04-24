@@ -1,23 +1,39 @@
 import requests
+import os
 from geopy.distance import geodesic
 import smtplib
 from email.mime.text import MIMEText
-from email_formatter import build_html_from_observations 
+from formatter import build_html_from_observations, build_markdown_from_observations
+from dotenv import load_dotenv
 
-# The email address and password you use to send the email
-sender = ""
-# If you use Gmail, you need to generate an app password
-password = ""
+load_dotenv()
 
-def send_email(body, subject, recipients):
+def send_email(observations, subject, recipients):
+    # The email address and password you use to send the email
+    SENDER_EMAIL_ADDRESS = os.getenv('SENDER_EMAIL_ADDRESS')
+    # If you use Gmail, you need to generate an app password
+    SENDER_EMAIL_PASSWORD = os.getenv('SENDER_EMAIL_PASSWORD')
+
+    body = build_html_from_observations(observations)
     msg = MIMEText(body, 'html')
     msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = ', '.join(recipients)
+    msg['From'] = SENDER_EMAIL_ADDRESS
+    msg['To'] = recipients
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
-       smtp_server.login(sender, password)
-       smtp_server.sendmail(sender, recipients, msg.as_string())
-    print("Message sent!")
+        smtp_server.login(SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD)
+        smtp_server.send_message(msg)
+    print("Email sent!")
+
+def send_telegram_message(observations):
+    markdown = build_markdown_from_observations(observations)
+    print(markdown)
+
+    TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+    TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+    telegram_bot_uri = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage';
+
+    requests.post(telegram_bot_uri, data={'chat_id': TELEGRAM_CHAT_ID, 'text': markdown, 'parse_mode': 'Markdown','disable_web_page_preview': 'true'})
+    print("Telegram message sent!")
 
 def get_current_location_by_ip():
     # Get public IP address and its location
@@ -48,7 +64,7 @@ POINT_REYES = (38.058190785132645, -122.88824681737209, 'Point Reyes')
 LOCATIONS = [CURRENT_LOCATION, POINT_REYES]
 
 # eBird API key
-EBIRD_API_KEY = ''
+EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 
 # change if you prefer to use region code instead of ip address
 CURRENT_REGION_CODE='US-CA-085'
@@ -70,9 +86,9 @@ OBSERVATION_BASE_URL = 'https://api.ebird.org/v2/data/obs/'
 NEAREST_OBSERVATION_BASE_URL = 'https://api.ebird.org/v2/data/nearest/geo/recent/'
 
 # Change the email subject to your preference
-EMAIL_SUBJECT = ""
+EMAIL_SUBJECT = os.getenv('EMAIL_SUBJECT')
 # Change the recipients to your email addresses
-RECIPIENTS = []
+RECIPIENTS = os.getenv('EMAIL_RECIPIENTS')
 
 def main():
     responses = []
@@ -84,8 +100,12 @@ def main():
         for observation in resp['response']:
             results.append(construct_observation_result(observation, resp['from']))
     results.sort(key=lambda x: (x['species'], x['from'], x['distance']))
-    body = build_html_from_observations(results)
-    send_email(body, subject = EMAIL_SUBJECT, recipients = RECIPIENTS)
+
+    if os.getenv('ENABLE_EMAIL_ALERT') == 'true':
+        send_email(results, subject = EMAIL_SUBJECT, recipients = RECIPIENTS)
+
+    if os.getenv('ENABLE_TELEGRAM_ALERT') == 'true':
+        send_telegram_message(results)
 
 
 def get_observations_from_region_code(region_code, species_code, days_back=DEFAULT_DAYS_BACK, max_result=500, should_include_provisional=False):

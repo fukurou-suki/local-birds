@@ -1,7 +1,9 @@
-def build_html_from_observations(obervations):
+from datetime import datetime
+
+def build_html_from_observations(observations):
     headers = ['From','Species', 'Distance', 'How Many', 'Date', 'Location', 'Comments', 'Photos', 'eBird Link']
-    rows = [observation.values() for observation in obervations]
-    
+    rows = [observation.values() for observation in observations]
+
     # Create the HTML for the table headers
     headers_html = ''.join(f'<th>{header}</th>' for header in headers)
 
@@ -18,3 +20,12 @@ def build_html_from_observations(obervations):
     </table>
     '''
     return table_html
+
+def build_markdown_from_observations(observations):
+    markdown = ''
+
+    for entry in observations:
+        date = datetime.fromisoformat(entry['obsDt']).strftime('%m/%d')
+        markdown += f'[{date} {entry["species"]} 🔗]({entry["ebird_link"]})\n📍{entry["locName"]}\n\n'
+
+    return markdown

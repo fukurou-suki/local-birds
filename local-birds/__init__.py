@@ -101,8 +101,11 @@ def main():
             results.append(construct_observation_result(observation, resp['from']))
     results.sort(key=lambda x: (x['species'], x['from'], x['distance']))
 
-    send_email(results, subject = EMAIL_SUBJECT, recipients = RECIPIENTS)
-    send_telegram_message(results)
+    if os.getenv('ENABLE_EMAIL_ALERT') == 'true':
+        send_email(results, subject = EMAIL_SUBJECT, recipients = RECIPIENTS)
+
+    if os.getenv('ENABLE_TELEGRAM_ALERT') == 'true':
+        send_telegram_message(results)
 
 
 def get_observations_from_region_code(region_code, species_code, days_back=DEFAULT_DAYS_BACK, max_result=500, should_include_provisional=False):

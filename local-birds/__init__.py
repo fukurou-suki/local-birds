@@ -43,11 +43,13 @@ if LOCATION_CORDINATES:
         locations.append((loc_latitude, loc_longitude, loc_name))
 
 location_list = ', '.join([location[2] for location in locations])
-print(location_list)
 FILTER_MODE = os.getenv('FILTER_MODE')
+ADDITIONAL_SPECIES_CODES = os.getenv('ADDITIONAL_SPECIES_CODES')
+additional_species_codes = [code.strip() for code in ADDITIONAL_SPECIES_CODES.split(',')] if ADDITIONAL_SPECIES_CODES else []
 DAYS_BACK = os.getenv('DAYS_BACK')
 MAX_DISTANCE_FROM_LOCATION = os.getenv('MAX_DISTANCE_FROM_LOCATION')
-filter_description = f'Notable observations in last {DAYS_BACK} days within {MAX_DISTANCE_FROM_LOCATION}mi of {location_list}' if FILTER_MODE == 'NOTABLE' else f'Owl observations in last {DAYS_BACK} days within {MAX_DISTANCE_FROM_LOCATION}mi of {location_list}'
+additional_species_desc = f'and additionals({ADDITIONAL_SPECIES_CODES}) ' if ADDITIONAL_SPECIES_CODES else ''
+filter_description = f'Notable observations {additional_species_desc}in last {DAYS_BACK} days within {MAX_DISTANCE_FROM_LOCATION}mi of {location_list}' if FILTER_MODE == 'NOTABLE' else f'Owl observations in last {DAYS_BACK} days within {MAX_DISTANCE_FROM_LOCATION}mi of {location_list}'
 
 def send_email(observations, subject, recipients):
     # The email address and password you use to send the email
@@ -105,10 +107,13 @@ def main():
     if FILTER_MODE == 'NOTABLE':
         for coordinate in locations:
             responses.append(get_notable_observations_from_coordinate(coordinate, max_distance_in_km, DAYS_BACK))
+        for species_code in additional_species_codes:
+            for coordinate in locations:
+                responses.append(get_observations_from_coordinate_by_specicies(species_code, coordinate, max_distance_in_km, DAYS_BACK, 20))
     elif FILTER_MODE == 'OWL':
         for species_code in SPECIES_CODES:
             for coordinate in locations:
-                responses.append(get_observations_from_coordinate(species_code, coordinate, max_distance_in_km, DAYS_BACK))
+                responses.append(get_observations_from_coordinate_by_specicies(species_code, coordinate, max_distance_in_km, DAYS_BACK))
     results = []
     for resp in responses:
         for observation in resp['response']:

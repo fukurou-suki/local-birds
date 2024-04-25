@@ -1,6 +1,6 @@
 from datetime import datetime
 
-def build_html_from_observations(observations):
+def build_html_from_observations(observations, description):
     headers = ['From','Species', 'Distance', 'How Many', 'Date', 'Location', 'Comments', 'Photos', 'eBird Link']
     rows = [observation.values() for observation in observations]
 
@@ -12,6 +12,7 @@ def build_html_from_observations(observations):
 
     # Combine the headers and rows into a complete HTML table
     table_html = f'''
+    <p>{description}:</p>
     <table>
       <tr>
         {headers_html}
@@ -21,11 +22,11 @@ def build_html_from_observations(observations):
     '''
     return table_html
 
-def build_markdown_from_observations(observations):
-    markdown = ''
+def build_markdown_from_observations(observations, description):
+    markdown = f'{description}:\n\n'
 
     for entry in observations:
         date = datetime.fromisoformat(entry['obsDt']).strftime('%m/%d')
-        markdown += f'[{date} {entry["species"]} 🔗]({entry["ebird_link"]})\n📍{entry["locName"]}\n\n'
+        markdown += f'[{date} {entry["species"]} 🔗]({entry["ebird_link"]})\n📍{entry["distance"]}mi {entry["locName"]}\n\n'
 
     return markdown

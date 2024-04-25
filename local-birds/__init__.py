@@ -82,15 +82,7 @@ EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 # change if you prefer to use region code instead of ip address
 CURRENT_REGION_CODE='US-CA-085'
 SPECIES_CODES=['grhowl', 'brnowl', 'wesowl1', 'nopowl', 'nswowl', 'brdowl', 'burowl']
-SPECIES_CODE_TO_NAME = {
-    'grhowl': 'Great Horned Owl',
-    'brnowl': 'Barn Owl',
-    'wesowl1': 'Western Screech-Owl',
-    'nopowl': 'Northern Pygmy-Owl',
-    'nswowl': 'Northern Saw-whet Owl',
-    'brdowl': 'Barred Owl',
-    'burowl': 'Burrowing Owl',
-}
+
 EBIRD_REPORT_PREFIX = 'https://ebird.org/checklist/'
 DEFAULT_DAYS_BACK = 1
 DEFAULT_MAX_DISTANCE_KM = 50
@@ -188,7 +180,6 @@ def construct_observation_result(observation, from_coordinate):
         checklist_info = get_checklist_info(observation['subId'])
         return {
             'from': from_coordinate[2],
-            # 'species': SPECIES_CODE_TO_NAME[observation['speciesCode']],
             'species': observation['comName'],
             'distance': int(distance),
             'howMany': observation.get('howMany', 1),

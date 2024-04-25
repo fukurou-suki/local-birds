@@ -73,7 +73,7 @@ def send_telegram_message(observations):
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
     telegram_bot_uri = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage';
 
-    # requests.post(telegram_bot_uri, data={'chat_id': TELEGRAM_CHAT_ID, 'text': markdown, 'parse_mode': 'Markdown','disable_web_page_preview': 'true'})
+    requests.post(telegram_bot_uri, data={'chat_id': TELEGRAM_CHAT_ID, 'text': markdown, 'parse_mode': 'Markdown','disable_web_page_preview': 'true'})
     print("Telegram message sent!")
 
 # eBird API key
@@ -94,7 +94,7 @@ SPECIES_CODE_TO_NAME = {
 EBIRD_REPORT_PREFIX = 'https://ebird.org/checklist/'
 DEFAULT_DAYS_BACK = 1
 DEFAULT_MAX_DISTANCE_KM = 50
-DEFAULT_MAX_RESULT = 500
+DEFAULT_MAX_RESULT = 100
 
 CHECKLIST_BASE_URL = 'https://api.ebird.org/v2/product/checklist/view/'
 OBSERVATION_BASE_URL = 'https://api.ebird.org/v2/data/obs/'
